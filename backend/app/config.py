@@ -1,8 +1,19 @@
 from functools import lru_cache
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def normalize_database_url(url: str) -> str:
+    """Normalize provider URLs to SQLAlchemy-friendly form."""
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql+psycopg2://", 1)
+    elif url.startswith("postgresql://") and "+psycopg2" not in url and "+asyncpg" not in url:
+        url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
+    return url
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
     app_name: str = "Leader Feedback, Poll & Grade System"
     secret_key: str = "change-me-in-production-leader-feedback-secret-key-2024"
     algorithm: str = "HS256"
@@ -20,10 +31,11 @@ class Settings(BaseSettings):
     oidc_discovery_url: str = ""
     frontend_url: str = "http://localhost:3000"
     default_locale: str = "en"
+    seed_on_startup: bool = False
 
-    class Config:
-        env_file = ".env"
-        extra = "ignore"
+    @property
+    def sqlalchemy_database_url(self) -> str:
+        return normalize_database_url(self.database_url)
 
     @property
     def cors_origin_list(self) -> list[str]:

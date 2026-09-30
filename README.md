@@ -85,3 +85,19 @@ Seeded open campaigns:
 - Use PostgreSQL
 - Configure real OIDC callback (replace `/api/auth/sso/dev-login`)
 - Put frontend and API behind HTTPS
+
+## Deploy (Railway + Vercel)
+
+Full step-by-step: see **[DEPLOY.md](./DEPLOY.md)**
+
+Quick path:
+1. Railway → deploy `backend/` + Postgres → set env vars
+2. Vercel → deploy `frontend/` with `NEXT_PUBLIC_API_URL`
+3. Update backend `CORS_ORIGINS` to Vercel URL
+4. First boot: `SEED_ON_STARTUP=true`, then turn off
+
+Local Docker stack:
+
+```powershell
+docker compose up --build
+```
