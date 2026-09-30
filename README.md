@@ -86,18 +86,13 @@ Seeded open campaigns:
 - Configure real OIDC callback (replace `/api/auth/sso/dev-login`)
 - Put frontend and API behind HTTPS
 
-## Deploy (Railway + Vercel)
+## Deploy — FREE (Vercel + Render + Neon)
 
-Full step-by-step: see **[DEPLOY.md](./DEPLOY.md)**
+Full steps: **[DEPLOY.md](./DEPLOY.md)**
 
-Quick path:
-1. Railway → deploy `backend/` + Postgres → set env vars
-2. Vercel → deploy `frontend/` with `NEXT_PUBLIC_API_URL`
-3. Update backend `CORS_ORIGINS` to Vercel URL
-4. First boot: `SEED_ON_STARTUP=true`, then turn off
+1. **Neon** free Postgres → copy `DATABASE_URL`
+2. **Render** free Web Service → root `backend` (Docker) → set env + seed
+3. **Vercel** free → root `frontend` → `NEXT_PUBLIC_API_URL`
+4. Render ma `CORS_ORIGINS` = Vercel URL
 
-Local Docker stack:
-
-```powershell
-docker compose up --build
-```
+Local Docker: `docker compose up --build`

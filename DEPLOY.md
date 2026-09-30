@@ -1,109 +1,141 @@
-# LeaderPulse — Deploy Guide
+# LeaderPulse — FREE Deploy Guide
+
+Badhu **free tier** par: Vercel (frontend) + Render (API) + Neon (Postgres).
 
 Repo: https://github.com/Zeelbhikadiya/Feedback.git
 
-## Architecture
+```
+Vercel Free  →  Next.js UI
+Render Free  →  FastAPI API
+Neon Free    →  PostgreSQL
+```
 
-```
-Vercel (Next.js frontend)
-        │
-        ▼ REST
-Railway / Render (FastAPI backend)
-        │
-        ▼
-PostgreSQL (Railway/Render/Neon)
-```
+> Note: free API idle pachi sleep thai shake (cold start 30–60s). Paid nathi joi.
 
 ---
 
-## 1) Backend — Railway (recommended)
+## Step 1 — Free Postgres (Neon) ~3 min
 
-1. Open [railway.app](https://railway.app) → **New Project** → **Deploy from GitHub**
-2. Select `Zeelbhikadiya/Feedback`
-3. Set **Root Directory** = `backend`
-4. Add a **PostgreSQL** plugin/service in the same project
-5. In the API service, set variables:
+1. https://neon.tech → Sign up (GitHub OK)
+2. **Create project** → name: `leaderpulse`
+3. **Connection string** copy karo (URI), jem ke:
 
-| Variable | Value |
-|----------|--------|
-| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` (Railway variable reference) |
-| `SECRET_KEY` | long random string |
-| `CORS_ORIGINS` | your Vercel URL, e.g. `https://feedback-xxx.vercel.app` |
+```text
+postgresql://user:password@ep-xxxx.aws.neon.tech/neondb?sslmode=require
+```
+
+App automatically `postgresql://` ne SQLAlchemy form ma convert kare.
+
+---
+
+## Step 2 — Free API (Render) ~7 min
+
+1. https://render.com → Sign up (GitHub)
+2. **New** → **Web Service**
+3. Connect repo: `Zeelbhikadiya/Feedback`
+4. Settings:
+
+| Field | Value |
+|--------|--------|
+| Name | `leaderpulse-api` |
+| Region | closest to you |
+| Root Directory | `backend` |
+| Runtime | **Docker** |
+| Instance type | **Free** |
+| Health Check Path | `/api/health` |
+
+5. **Environment** variables:
+
+| Key | Value |
+|-----|--------|
+| `DATABASE_URL` | Neon connection string (Step 1) |
+| `SECRET_KEY` | koi pan long random text (20+ chars) |
+| `SEED_ON_STARTUP` | `true` |
+| `CORS_ORIGINS` | `*` (temporary; Vercel URL pachi update) |
+| `FRONTEND_URL` | `https://placeholder.vercel.app` (pachi update) |
+
+6. **Create Web Service** → wait until Live
+7. URL copy: `https://leaderpulse-api.onrender.com`
+8. Test: `https://YOUR-API.onrender.com/api/health` → `{"status":"ok"}`
+
+---
+
+## Step 3 — Free Website (Vercel) ~5 min
+
+1. https://vercel.com → Sign up (GitHub)
+2. **Add New Project** → import `Feedback`
+3. Configure:
+
+| Field | Value |
+|--------|--------|
+| Framework | Next.js |
+| Root Directory | `frontend` (Edit → select) |
+| Build | default |
+
+4. Environment Variable:
+
+| Key | Value |
+|-----|--------|
+| `NEXT_PUBLIC_API_URL` | Render API URL, e.g. `https://leaderpulse-api.onrender.com` |
+
+5. **Deploy**
+6. Site URL copy: `https://feedback-xxxx.vercel.app`
+
+---
+
+## Step 4 — CORS link (important)
+
+Render → Environment → update:
+
+| Key | Value |
+|-----|--------|
+| `CORS_ORIGINS` | your exact Vercel URL (no trailing slash) |
 | `FRONTEND_URL` | same Vercel URL |
-| `SEED_ON_STARTUP` | `true` (first deploy only, then set `false`) |
-| `PORT` | Railway usually injects this |
+| `SEED_ON_STARTUP` | `false` (seed ek vaar thai gayu hoy to) |
 
-6. Deploy → copy public API URL, e.g. `https://leaderpulse-api.up.railway.app`
-7. Confirm health: `https://YOUR-API/api/health`
-
-Docker uses `backend/Dockerfile` + `start.sh` (creates tables, optional seed, starts uvicorn).
-
-### Backend — Render (alternative)
-
-1. [render.com](https://render.com) → New → Blueprint
-2. Connect the GitHub repo
-3. It can use `backend/render.yaml`
-4. Set `CORS_ORIGINS` and `FRONTEND_URL` after Vercel URL is known
-5. First deploy with `SEED_ON_STARTUP=true`
+**Manual Deploy** / restart API.
 
 ---
 
-## 2) Frontend — Vercel
+## Step 5 — Login
 
-1. Open [vercel.com](https://vercel.com) → **Add New Project** → import `Zeelbhikadiya/Feedback`
-2. Configure:
-   - **Root Directory:** `frontend`
-   - Framework: Next.js
-3. Environment variable:
+Open Vercel URL → login:
 
-| Variable | Value |
-|----------|--------|
-| `NEXT_PUBLIC_API_URL` | your Railway/Render API URL (no trailing slash) |
-
-4. Deploy
-5. Copy the Vercel URL → go back to backend and update `CORS_ORIGINS` + `FRONTEND_URL`
-6. Redeploy backend once CORS is updated
+| Email | Password |
+|--------|----------|
+| `hr@company.local` | `Password123!` |
+| `admin@company.local` | `Password123!` |
+| `e1@company.local` | `Password123!` |
 
 ---
 
-## 3) First login (after seed)
+## Free limits (reality)
 
-Password: `Password123!`
+| Service | Free |
+|---------|------|
+| Vercel | Hobby — OK for this app |
+| Render | Free web — sleeps after ~15 min idle |
+| Neon | Free DB — enough for demo/small team |
 
-- `hr@company.local` — Management
-- `admin@company.local` — Admin
-- `e1@company.local` — Employee
-- `grouphead@company.local` — Group Head
-
-Then set `SEED_ON_STARTUP=false` and change the admin password in production.
+First open after sleep: API 30–60s late thai shake — normal free tier.
 
 ---
 
-## 4) Local production-like test (Docker)
+## Optional: local free Docker test
+
+PC par Docker Desktop free:
 
 ```powershell
 docker compose up --build
 ```
 
-- Web: http://localhost:3000
-- API: http://localhost:8000/docs
-- DB: Postgres on `localhost:5432`
+- http://localhost:3000
+- http://localhost:8000/docs
 
 ---
 
-## 5) Checklist
+## Stuck?
 
-- [ ] Postgres connected (not SQLite)
-- [ ] Strong `SECRET_KEY`
-- [ ] `CORS_ORIGINS` matches exact Vercel URL (https)
-- [ ] `NEXT_PUBLIC_API_URL` points to live API
-- [ ] Health check `/api/health` returns `{"status":"ok"}`
-- [ ] Seed once, then disable
-- [ ] Optional: `OPENAI_API_KEY`, SMTP, OIDC for full features
-
----
-
-## Env templates
-
-- Backend: `backend/.env.example`
-- Frontend: `frontend/.env.example`
+1. API health fail → `DATABASE_URL` / Docker build logs check
+2. Login fail / CORS error → `CORS_ORIGINS` exact Vercel URL
+3. Frontend blank API errors → `NEXT_PUBLIC_API_URL` wrong / redeploy frontend after changing it

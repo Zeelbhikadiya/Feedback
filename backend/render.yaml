@@ -3,23 +3,17 @@ services:
     name: leaderpulse-api
     runtime: docker
     plan: free
+    rootDir: .
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /api/health
     envVars:
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
-        fromDatabase:
-          name: leaderpulse-db
-          property: connectionString
-      - key: CORS_ORIGINS
         sync: false
+      - key: CORS_ORIGINS
+        value: "*"
       - key: FRONTEND_URL
         sync: false
       - key: SEED_ON_STARTUP
         value: "true"
-      - key: PYTHON_VERSION
-        value: "3.12.0"
-
-databases:
-  - name: leaderpulse-db
-    plan: free
